@@ -2,14 +2,23 @@ const express = require('express');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const { SocksProxyAgent } = require('socks-proxy-agent');
 const https = require('https');
+const fs = require('fs');
 const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '200kb' }));
-const PUBLIC_DIR = path.join(__dirname, 'public');
-app.use(express.static(PUBLIC_DIR));
-app.get('/', (_req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
 
+// Render-safe paths: support both a public/index.html layout and a root index.html layout.
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const PUBLIC_INDEX = path.join(PUBLIC_DIR, 'index.html');
+const ROOT_INDEX = path.join(__dirname, 'index.html');
+const STATIC_DIR = fs.existsSync(PUBLIC_INDEX) ? PUBLIC_DIR : __dirname;
+app.use(express.static(STATIC_DIR));
+app.get('/', (_req, res) => {
+  const indexPath = fs.existsSync(PUBLIC_INDEX) ? PUBLIC_INDEX : ROOT_INDEX;
+  if (fs.existsSync(indexPath)) return res.sendFile(indexPath);
+  return res.status(500).type('text').send('FRS Dork URL Hunter: index.html not found. Upload index.html to the project root or public/index.html.');
+});
 const jobs = new Map();
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function cleanDomain(raw) {

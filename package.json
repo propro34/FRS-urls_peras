@@ -1,7 +1,7 @@
 {
   "name": "frs-dork-url-hunter",
-  "version": "1.4.1",
-  "description": "Fixed root route and absolute static asset path for Render deployment",
+  "version": "1.4.2",
+  "description": "Render hotfix: root route falls back to root index.html when public index is absent",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
