@@ -1,7 +1,7 @@
 {
   "name": "frs-dork-url-hunter",
-  "version": "1.4.2",
-  "description": "Render hotfix: root route falls back to root index.html when public index is absent",
+  "version": "1.4.3",
+  "description": "Fix API JSON diagnostics and Render root fallback",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

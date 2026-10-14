@@ -1,10 +1,10 @@
-FRS Dork URL Hunter PRIME v1.4.2 - Render Hotfix
+# FRS Dork URL Hunter PRIME v1.4.3
 
-IMPORTANT: In GitHub, upload the CONTENTS of this folder into the repository root, so server.js, package.json, index.html, and public/ are directly visible in the repository. Do not upload the ZIP alone and do not leave everything nested in an extra FRS_Dork_URL_Hunter folder unless Render Root Directory is set to that folder.
+## Render deployment
+- Root Directory: leave blank when these files are in repository root.
+- Build Command: `npm install`
+- Start Command: `npm start`
 
-Render settings:
-- Root Directory: leave blank when the files are in repository root
-- Build Command: npm install
-- Start Command: npm start
+Upload the **contents** of this folder to the repository root, replacing `server.js`, `package.json`, `index.html`, and the `public/` folder. Do not upload only the HTML file.
 
-This version serves public/index.html if present, otherwise it falls back to root index.html.
+Health check: `/health` should return JSON with `ok: true` and version `1.4.3`. If the browser says the API returned HTML instead of JSON, the live service is running old or mismatched server code; redeploy all project files.

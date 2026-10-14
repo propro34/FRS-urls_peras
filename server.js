@@ -119,5 +119,6 @@ app.get('/api/status/:id', (req, res) => {
   res.json({ id: j.id, running: j.running, done: j.done, completed: j.completed, totalTasks: j.totalTasks, urls: j.urls, errors: j.errors.slice(-30), proxyName: j.proxy ? (j.proxyName + ' · ' + j.proxyType.toUpperCase()) : 'Direct connection' });
 });
 app.post('/api/stop/:id', (req, res) => { const j = jobs.get(req.params.id); if (!j) return res.status(404).json({ error: 'Job not found' }); j.running = false; res.json({ ok: true }); });
-app.get('/health', (_req,res) => res.json({ ok: true, app: 'FRS Dork URL Hunter' }));
+app.use('/api', (req, res) => res.status(404).json({ error: `API route not found: ${req.method} ${req.path}`, hint: 'The server code may be outdated. Redeploy the complete project including server.js and package.json.' }));
+app.get('/health', (_req,res) => res.json({ ok: true, app: 'FRS Dork URL Hunter', version: '1.4.3' }));
 app.listen(PORT, () => console.log(`FRS Dork URL Hunter listening on ${PORT}`));
