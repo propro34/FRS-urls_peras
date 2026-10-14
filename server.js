@@ -2,10 +2,13 @@ const express = require('express');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const { SocksProxyAgent } = require('socks-proxy-agent');
 const https = require('https');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '200kb' }));
-app.use(express.static('public'));
+const PUBLIC_DIR = path.join(__dirname, 'public');
+app.use(express.static(PUBLIC_DIR));
+app.get('/', (_req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
 
 const jobs = new Map();
 const sleep = ms => new Promise(r => setTimeout(r, ms));

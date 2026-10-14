@@ -1,7 +1,7 @@
 {
   "name": "frs-dork-url-hunter",
-  "version": "1.4.0",
-  "description": "Mobile-first public URL collector with manual engine selection and proxy list import",
+  "version": "1.4.1",
+  "description": "Fixed root route and absolute static asset path for Render deployment",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
