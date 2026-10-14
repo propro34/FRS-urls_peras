@@ -7,6 +7,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '200kb' }));
+// API diagnostics are registered before static/root handling so API paths always return JSON.
+app.get('/api/health', (_req, res) => res.json({ ok: true, app: 'FRS Dork URL Hunter PRIME', version: '1.4.4' }));
 
 // Render-safe paths: support both a public/index.html layout and a root index.html layout.
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -119,6 +121,6 @@ app.get('/api/status/:id', (req, res) => {
   res.json({ id: j.id, running: j.running, done: j.done, completed: j.completed, totalTasks: j.totalTasks, urls: j.urls, errors: j.errors.slice(-30), proxyName: j.proxy ? (j.proxyName + ' · ' + j.proxyType.toUpperCase()) : 'Direct connection' });
 });
 app.post('/api/stop/:id', (req, res) => { const j = jobs.get(req.params.id); if (!j) return res.status(404).json({ error: 'Job not found' }); j.running = false; res.json({ ok: true }); });
-app.use('/api', (req, res) => res.status(404).json({ error: `API route not found: ${req.method} ${req.path}`, hint: 'The server code may be outdated. Redeploy the complete project including server.js and package.json.' }));
-app.get('/health', (_req,res) => res.json({ ok: true, app: 'FRS Dork URL Hunter', version: '1.4.3' }));
+app.use('/api', (req, res) => res.status(404).json({ error: `API route not found: ${req.method} ${req.path}`, hint: 'If this is HTML, Render is serving an old/different server. Replace server.js and package.json at the project root and redeploy.' }));
+app.get('/health', (_req,res) => res.json({ ok: true, app: 'FRS Dork URL Hunter PRIME', version: '1.4.4' }));
 app.listen(PORT, () => console.log(`FRS Dork URL Hunter listening on ${PORT}`));

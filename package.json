@@ -1,7 +1,7 @@
 {
   "name": "frs-dork-url-hunter",
-  "version": "1.4.3",
-  "description": "Fix API JSON diagnostics and Render root fallback",
+  "version": "1.4.4",
+  "description": "API route diagnostics and Render root fallback",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
