@@ -1,0 +1,17 @@
+{
+  "name": "frs-dork-url-hunter",
+  "version": "1.4.0",
+  "description": "Mobile-first public URL collector with manual engine selection and proxy list import",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "https-proxy-agent": "^7.0.6",
+    "socks-proxy-agent": "^8.0.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
