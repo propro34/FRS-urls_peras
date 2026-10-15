@@ -1,14 +1,15 @@
-# FRS Dork URL Hunter PRIME v1.4.3
+# FRS Dork URL Hunter PRIME v1.5.1
 
-## Render deployment
-- Root Directory: leave blank when these files are in repository root.
-- Build Command: `npm install`
-- Start Command: `npm start`
+Node.js/Express app with two separate modes:
+- **Offline URL extraction:** paste text or HTML and extract/deduplicate HTTP(S) URLs. No network requests are made in this mode. An optional base URL resolves relative links.
+- **Live search:** Bing/Yahoo search constrained to explicitly entered authorized domains, with request diagnostics. Availability depends on search-engine behavior and network access.
 
-Upload the **contents** of this folder to the repository root, replacing `server.js`, `package.json`, `index.html`, and the `public/` folder. Do not upload only the HTML file.
+## Run locally
+1. Install Node.js 18 or newer.
+2. Run `npm install`.
+3. Run `npm start`.
+4. Open `http://localhost:3000`.
 
-Health check: `/health` should return JSON with `ok: true` and version `1.4.3`. If the browser says the API returned HTML instead of JSON, the live service is running old or mismatched server code; redeploy all project files.
+Health check: `/api/health`. Offline extractor API: `POST /api/extract` with JSON `{ "text": "...", "baseUrl": "https://example.org/" }`.
 
-
-## PRIME v1.4.4 API troubleshooting
-After deployment, open `/health` and `/api/health`; both should return JSON with version `1.4.4`. If either returns HTML, Render is not running this project's `server.js`. Replace `server.js`, `package.json`, `index.html`, and the `public` folder in the repository root (do not upload only the ZIP or only the HTML file), then redeploy.
+Live search accepts up to 50 queries and 20 authorized domains per job. Only test domains for which you have permission.

@@ -8,7 +8,36 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '200kb' }));
 // API diagnostics are registered before static/root handling so API paths always return JSON.
-app.get('/api/health', (_req, res) => res.json({ ok: true, app: 'FRS Dork URL Hunter PRIME', version: '1.4.4' }));
+app.get('/api/health', (_req, res) => res.json({ ok: true, app: 'FRS Dork URL Hunter PRIME', version: '1.5.1-offline-extractor' }));
+// Offline extraction mode: parses URLs from user-provided text/HTML without making network requests.
+app.post('/api/extract', (req, res) => {
+  const source = String(req.body.text || '').slice(0, 500000);
+  const decoded = decodeHtml(source);
+  const found = new Set();
+  const candidates = decoded.match(/https?:\/\/[^\s<>\"'`]+/gi) || [];
+  for (const candidate of candidates) {
+    const cleaned = candidate.replace(/[),.;\]}>]+$/g, '');
+    try {
+      const u = new URL(cleaned);
+      if (!['http:', 'https:'].includes(u.protocol)) continue;
+      u.hash = '';
+      found.add(u.href);
+    } catch {}
+  }
+  // Also parse ordinary href attributes, including relative URLs when a base URL is supplied.
+  const base = String(req.body.baseUrl || '').trim();
+  const hrefRe = /href\s*=\s*[\"']([^\"']+)[\"']/gi; let m;
+  while ((m = hrefRe.exec(source)) !== null) {
+    const raw = decodeHtml(m[1].trim());
+    try {
+      const u = base ? new URL(raw, base) : new URL(raw);
+      if (!['http:', 'https:'].includes(u.protocol)) continue;
+      u.hash = ''; found.add(u.href);
+    } catch {}
+  }
+  const urls = [...found].slice(0, 10000);
+  res.json({ ok: true, count: urls.length, urls });
+});
 
 // Render-safe paths: support both a public/index.html layout and a root index.html layout.
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -86,6 +115,8 @@ async function fetchSearch(engine, query, proxy, proxyType) {
 }
 app.post('/api/start', (req, res) => {
   const dorks = [...new Set(String(req.body.dorks || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean))].slice(0, 50);
+  const allowedDomains = [...new Set(String(req.body.allowedDomains || '').split(/[\s,;]+/).map(cleanDomain).filter(Boolean))].slice(0, 20);
+  if (!allowedDomains.length) return res.status(400).json({ error: 'أدخل نطاقًا واحدًا على الأقل تملك تصريحًا لاختباره، مثل lab.example.edu.' });
   const engines = [...new Set((Array.isArray(req.body.engines) ? req.body.engines : []).filter(e => ['bing','yahoo','yahoo-jp'].includes(e)))];
   const proxyLines = String(req.body.proxyList || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
   let proxy = '', proxyType = 'http', proxyName = 'Direct connection';
@@ -98,18 +129,20 @@ app.post('/api/start', (req, res) => {
   if (!dorks.length) return res.status(400).json({ error: 'Add at least one search dork.' });
   if (!engines.length) return res.status(400).json({ error: 'Select at least one search engine.' });
   const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
-  const job = { id, dorks, engines, proxy, proxyType, proxyName, running: true, done: false, totalTasks: dorks.length * engines.length, completed: 0, urls: [], errors: [], startedAt: Date.now() };
+  const tasks = dorks.flatMap(dork => allowedDomains.map(domain => ({ dork, domain })));
+  const job = { id, dorks, allowedDomains, tasks, engines, proxy, proxyType, proxyName, running: true, done: false, totalTasks: tasks.length * engines.length, completed: 0, urls: [], errors: [], startedAt: Date.now() };
   jobs.set(id, job);
   res.json({ id, totalTasks: job.totalTasks, proxyName: proxy ? `${proxyName} · ${proxyType.toUpperCase()}` : 'Direct connection' });
   (async () => {
     const seen = new Set();
-    for (const dork of dorks) for (const engine of engines) {
+    for (const task of tasks) for (const engine of engines) {
       if (!job.running) break;
+      const scopedQuery = `(${task.dork}) site:${task.domain}`;
       try {
-        const html = await fetchSearch(engine, dork, proxy, proxyType);
+        const html = await fetchSearch(engine, scopedQuery, proxy, proxyType);
         const links = extractLinks(html, engine);
-        for (const url of links) if (!seen.has(url)) { seen.add(url); job.urls.push({ url, domain: new URL(url).hostname, dork, engine, time: new Date().toISOString() }); }
-      } catch (e) { job.errors.push({ engine, dork, message: String(e.message || e).slice(0, 180) }); }
+        for (const url of links) if (inAllowedHost(url, [task.domain]) && !seen.has(url)) { seen.add(url); job.urls.push({ url, domain: new URL(url).hostname, dork: task.dork, engine, time: new Date().toISOString() }); }
+      } catch (e) { job.errors.push({ engine, dork: task.dork, domain: task.domain, message: String(e.message || e).slice(0, 180) }); }
       job.completed++;
       await sleep(2500);
     }
@@ -122,5 +155,5 @@ app.get('/api/status/:id', (req, res) => {
 });
 app.post('/api/stop/:id', (req, res) => { const j = jobs.get(req.params.id); if (!j) return res.status(404).json({ error: 'Job not found' }); j.running = false; res.json({ ok: true }); });
 app.use('/api', (req, res) => res.status(404).json({ error: `API route not found: ${req.method} ${req.path}`, hint: 'If this is HTML, Render is serving an old/different server. Replace server.js and package.json at the project root and redeploy.' }));
-app.get('/health', (_req,res) => res.json({ ok: true, app: 'FRS Dork URL Hunter PRIME', version: '1.4.4' }));
+app.get('/health', (_req,res) => res.json({ ok: true, app: 'FRS Dork URL Hunter PRIME', version: '1.5.1-offline-extractor' }));
 app.listen(PORT, () => console.log(`FRS Dork URL Hunter listening on ${PORT}`));
