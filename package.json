@@ -1,17 +1,13 @@
 {
   "name": "frs-dork-url-hunter",
-  "version": "1.7.0",
-  "description": "FRS Dork URL Hunter - no dork limit, proxy rotation, fixed Yahoo handling",
+  "version": "2.0.0",
+  "description": "FRS Dork URL Hunter PRIME Deep - deep expansion, multi-page, private ranking",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "scripts": { "start": "node server.js" },
   "dependencies": {
     "express": "^4.21.2",
     "https-proxy-agent": "^7.0.6",
     "socks-proxy-agent": "^8.0.5"
   },
-  "engines": {
-    "node": ">=18"
-  }
+  "engines": { "node": ">=18" }
 }
