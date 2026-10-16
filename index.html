@@ -2,206 +2,412 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#101014">
-<title>FRS Dork URL Hunter PRIME v1.5</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>FRS Dork URL Hunter</title>
 <style>
-:root{--bg:#0b0b10;--panel:#15151d;--line:#30303d;--red:#ff304f;--red2:#b90e2b;--muted:#9b9baa;--text:#f5f5fa;--green:#48e0a1}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at top right,#29101a 0,transparent 35%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
-header{padding:22px max(18px,calc((100vw - 1240px)/2));border-bottom:1px solid var(--line);background:#101014e8;position:sticky;top:0;z-index:5;backdrop-filter:blur(12px)}
-.brand{display:flex;align-items:center;gap:13px}
-.logo{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,#ff536a,#9c0926);font-weight:1000;box-shadow:0 8px 25px #ff304f35}
-.brand h1{font-size:19px;margin:0;letter-spacing:.5px}
-.brand p{margin:2px 0 0;color:var(--muted);font-size:12px}
-.wrap{max-width:1240px;margin:24px auto;padding:0 18px 40px}
-.hero{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:20px}
-.hero h2{margin:0;font-size:clamp(23px,3vw,34px);letter-spacing:-.7px}
-.hero h2 span{color:var(--red)}
-.hero p{margin:7px 0 0;color:var(--muted)}
-.status{font-size:12px;border:1px solid #345c4b;color:var(--green);border-radius:999px;padding:7px 11px;white-space:nowrap}
-.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
-.engine-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.engine{display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);border-radius:10px;padding:11px 6px;background:#0d0d13;margin:0}
-.engine input{width:auto;accent-color:var(--red)}
-.panel{border:1px solid var(--line);background:linear-gradient(180deg,#17171f,#121218);border-radius:18px;padding:18px;box-shadow:0 16px 45px #0002}
-.panel h3{margin:0 0 15px;font-size:16px}
-.section{margin-bottom:17px}
-label{display:block;color:#d8d8e3;font-size:12px;font-weight:700;margin-bottom:7px}
-.hint{font-size:11px;color:var(--muted);margin-top:6px}
-textarea,input{width:100%;background:#09090e;border:1px solid #373744;border-radius:11px;padding:12px;color:var(--text);outline:none;font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
-textarea:focus,input:focus{border-color:var(--red);box-shadow:0 0 0 3px #ff304f1a}
-textarea{resize:vertical;min-height:100px}
-#dorks{min-height:150px}
-.proxybulk{min-height:90px}
-button,input,select,textarea{max-width:100%}
-.filepick{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.filepick input[type=file]{max-width:100%;font-size:11px}
-.subpanel{border:1px solid #353541;background:#101016;border-radius:13px;padding:13px;margin:12px 0}
-.subpanel h4{margin:0 0 10px;font-size:13px}
-.mini{padding:8px 10px;font-size:11px}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.btn{border:1px solid #3b3b48;border-radius:11px;padding:12px 10px;background:#20202a;color:var(--text);font-weight:800;cursor:pointer}
-.btn.primary{background:linear-gradient(110deg,#ff3e59,#bc0d2c);border-color:#ff5369;box-shadow:0 8px 20px #ff304f25}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn:hover:not(:disabled){filter:brightness(1.12)}
-.notice{border:1px solid #51412a;background:#211b11;color:#e5ce9a;border-radius:12px;padding:11px;font-size:11px;margin-top:14px}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
-.stat{border:1px solid var(--line);border-radius:13px;background:#14141b;padding:13px}
-.stat span{display:block;color:var(--muted);font-size:11px}
-.stat strong{display:block;font-size:25px;margin-top:3px}
-.stat.red strong{color:var(--red)}
-.progress{height:6px;background:#2b2b36;border-radius:9px;overflow:hidden;margin:8px 0 14px}
-.progress div{height:100%;width:0;background:linear-gradient(90deg,#ff5c70,#ba0828);transition:width .2s}
-.tablehead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0}
-.tablehead h3{margin:0}
-.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:13px;max-height:530px}
-table{width:100%;border-collapse:collapse;min-width:650px;font-size:12px}
-th{position:sticky;top:0;background:#20202a;color:#d7d7e1;text-align:right;padding:11px;z-index:1}
-td{padding:10px 11px;border-top:1px solid #292933;vertical-align:top}
-tr:hover td{background:#ffffff05}
-.url{color:#ff7d91;word-break:break-all;text-decoration:none}
-.url:hover{text-decoration:underline}
-.tag{display:inline-block;padding:3px 7px;border:1px solid #3b3b49;border-radius:7px;color:#bdbdcb;font-size:10px}
-.empty{text-align:center;padding:50px 15px;color:var(--muted)}
-.empty strong{display:block;color:#dedee8;font-size:14px;margin-bottom:6px}
-.foot{color:var(--muted);font-size:11px;text-align:center;margin-top:20px}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:11px 16px;background:#262631;border:1px solid #454553;border-radius:11px;display:none;z-index:20;max-width:90vw}
-.toast.show{display:block}
-@media(max-width:850px){
-  header{padding:12px 14px}
-  .brand h1{font-size:15px}
-  .brand p{font-size:10px}
-  .wrap{margin:12px auto;padding:0 12px 26px}
-  .hero h2{font-size:24px}
-  .layout{grid-template-columns:1fr}
-  .hero{align-items:start;flex-direction:column}
-  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .panel{padding:15px}
+:root {
+  --bg: #0b0b10;
+  --panel: #15151d;
+  --line: #30303d;
+  --red: #ff304f;
+  --muted: #9b9baa;
+  --text: #f5f5fa;
+  --green: #48e0a1;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
-@media(min-width:851px){.left{position:sticky;top:105px}}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: radial-gradient(ellipse at top right, #29101a 0, transparent 40%), var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+  min-height: 100dvh;
+  padding-bottom: var(--safe-bottom);
+}
+header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  background: #101014f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo {
+  width: 38px; height: 38px; border-radius: 11px;
+  display: grid; place-items: center;
+  background: linear-gradient(145deg, #ff536a, #9c0926);
+  font-weight: 900; font-size: 14px; flex-shrink: 0;
+}
+.brand h1 { font-size: 16px; font-weight: 800; letter-spacing: 0.2px; }
+.brand span { color: var(--red); }
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 12px calc(28px + var(--safe-bottom));
+}
+
+.panel {
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #17171f, #121218);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.panel h3 { margin: 0 0 12px; font-size: 14px; font-weight: 700; }
+
+label {
+  display: block;
+  color: #d8d8e3;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+textarea {
+  width: 100%;
+  background: #09090e;
+  border: 1px solid #373744;
+  border-radius: 10px;
+  padding: 11px;
+  color: var(--text);
+  outline: none;
+  font: 13px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+  resize: vertical;
+  -webkit-appearance: none;
+}
+textarea:focus { border-color: var(--red); box-shadow: 0 0 0 3px #ff304f22; }
+#dorks { min-height: 140px; }
+.proxybulk { min-height: 72px; }
+
+.subpanel {
+  border: 1px solid #353541;
+  background: #101016;
+  border-radius: 11px;
+  padding: 12px;
+  margin: 10px 0;
+}
+.subpanel h4 { margin: 0 0 8px; font-size: 12px; font-weight: 700; }
+
+.engine-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.engine {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 10px 4px;
+  background: #0d0d13;
+  font-size: 12px;
+  cursor: pointer;
+  min-height: 42px;
+  -webkit-tap-highlight-color: transparent;
+}
+.engine input { accent-color: var(--red); width: 16px; height: 16px; margin: 0; flex-shrink: 0; }
+
+.note {
+  font-size: 11px;
+  color: #c9a96e;
+  background: #1e1a12;
+  border: 1px solid #4a3f28;
+  border-radius: 8px;
+  padding: 9px 10px;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.filepick {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.filepick input[type=file] {
+  font-size: 12px;
+  max-width: 100%;
+  color: var(--muted);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.btn {
+  border: 1px solid #3b3b48;
+  border-radius: 10px;
+  padding: 12px 8px;
+  background: #20202a;
+  color: var(--text);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter .15s;
+}
+.btn.primary {
+  background: linear-gradient(110deg, #ff3e59, #bc0d2c);
+  border-color: #ff5369;
+}
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn:hover:not(:disabled) { filter: brightness(1.1); }
+.btn:active:not(:disabled) { filter: brightness(0.95); }
+.mini { padding: 8px 10px; font-size: 12px; min-height: 36px; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.stat {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #14141b;
+  padding: 10px 8px;
+  min-width: 0;
+}
+.stat span { display: block; color: var(--muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat strong { display: block; font-size: 18px; margin-top: 3px; overflow-wrap: anywhere; }
+.stat.red strong { color: var(--red); }
+
+.progress {
+  height: 5px;
+  background: #2b2b36;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 4px 0 12px;
+}
+.progress div {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #ff5c70, #ba0828);
+  transition: width .2s;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.toolbar .btn { min-height: 40px; font-size: 12px; padding: 8px 4px; }
+
+.tablehead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0 6px;
+  gap: 8px;
+}
+.tablehead h3 { margin: 0; font-size: 14px; }
+
+.tablewrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  max-height: 55vh;
+  -webkit-overflow-scrolling: touch;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 520px;
+  font-size: 12px;
+}
+th {
+  position: sticky;
+  top: 0;
+  background: #20202a;
+  color: #d7d7e1;
+  text-align: right;
+  padding: 10px 8px;
+  z-index: 1;
+  white-space: nowrap;
+}
+td {
+  padding: 9px 8px;
+  border-top: 1px solid #292933;
+  vertical-align: top;
+}
+.url {
+  color: #ff7d91;
+  word-break: break-all;
+  text-decoration: none;
+  line-height: 1.45;
+}
+.url:hover { text-decoration: underline; }
+.tag {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid #3b3b49;
+  border-radius: 6px;
+  color: #bdbdcb;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.empty {
+  text-align: center;
+  padding: 40px 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.toast {
+  position: fixed;
+  bottom: calc(16px + var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  background: #262631;
+  border: 1px solid #454553;
+  border-radius: 10px;
+  display: none;
+  z-index: 30;
+  max-width: calc(100vw - 32px);
+  font-size: 13px;
+  text-align: center;
+  box-shadow: 0 8px 30px #0008;
+}
+.toast.show { display: block; }
+
+/* ========== Mobile / Tablet ========== */
+@media (max-width: 700px) {
+  header { padding: 12px 12px; }
+  .brand h1 { font-size: 14px; }
+  .logo { width: 34px; height: 34px; border-radius: 9px; font-size: 12px; }
+  .wrap { padding: 10px 8px calc(20px + var(--safe-bottom)); }
+  .panel { padding: 12px; border-radius: 12px; }
+  .panel h3 { font-size: 13px; }
+
+  .engine-grid { grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+  .engine { padding: 9px 2px; font-size: 11px; min-height: 40px; }
+
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .stat { padding: 9px 7px; }
+  .stat strong { font-size: 17px; }
+
+  .toolbar { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .toolbar .btn { min-height: 42px; }
+
+  .tablewrap { max-height: 50vh; }
+  table { min-width: 480px; font-size: 11px; }
+  th, td { padding: 8px 6px; }
+
+  #dorks { min-height: 120px; }
+  .actions { gap: 6px; }
+  .btn { min-height: 46px; font-size: 13px; }
+}
+
+@media (max-width: 400px) {
+  .brand h1 { font-size: 13px; }
+  .engine { font-size: 10px; padding: 8px 1px; }
+  .stat span { font-size: 9px; }
+  .stat strong { font-size: 15px; }
+  .toolbar .btn { font-size: 11px; padding: 8px 2px; }
+  table { min-width: 420px; }
+}
+
+@media (max-width: 340px) {
+  .engine-grid { grid-template-columns: 1fr; }
+  .stats { gap: 5px; }
+}
 </style>
 </head>
 <body>
 <header>
   <div class="brand">
     <div class="logo">FRS</div>
-    <div>
-      <h1>FRS DORK URL HUNTER <span style="color:var(--red)">/ PRIME</span></h1>
-      <p>Dork Search · Live URLs · Proxy · v1.5.0</p>
-    </div>
+    <h1>DORK URL HUNTER <span>PRIME</span></h1>
   </div>
 </header>
 
 <main class="wrap">
-  <div class="hero">
-    <div>
-      <h2>Hunt URLs. <span>Stay in control.</span></h2>
-      <p>أضف استعلامات البحث (Dorks)، اختر المحركات، وشاهد الروابط في جدول مباشر — بدون حدّ 50.</p>
+  <div class="panel">
+    <h3>إعدادات</h3>
+    <label for="dorks">Dorks (سطر لكل واحد — بدون حد)</label>
+    <textarea id="dorks" placeholder='intext:"PDOException:" inurl:.php?file=
+site:.ma inurl:admin
+intitle:"index of"'></textarea>
+    <div class="filepick">
+      <input id="dorksFile" type="file" accept=".txt,.csv">
+      <button class="btn mini" id="loadDorks">استيراد ملف</button>
     </div>
-    <div class="status">● READY TO SEARCH</div>
+
+    <div class="subpanel">
+      <h4>المحركات</h4>
+      <div class="engine-grid">
+        <label class="engine"><input type="checkbox" name="engine" value="bing" checked> Bing</label>
+        <label class="engine"><input type="checkbox" name="engine" value="yahoo"> Yahoo</label>
+        <label class="engine"><input type="checkbox" name="engine" value="yahoo-jp" checked> Yahoo JP</label>
+      </div>
+      <div class="note">Yahoo (US) غالباً محظور. استعمل Bing + Yahoo JP + بروكسيات.</div>
+    </div>
+
+    <div class="subpanel">
+      <h4>بروكسيات (دوران تلقائي)</h4>
+      <textarea id="proxyBulk" class="proxybulk" placeholder="IP:PORT
+SOCKS5 | IP:PORT"></textarea>
+      <div class="filepick">
+        <input id="proxyFile" type="file" accept=".txt,.csv">
+        <button class="btn mini" id="loadProxyFile">استيراد</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="start">▶ بدء</button>
+      <button class="btn" id="stop" disabled>■ إيقاف</button>
+    </div>
   </div>
 
-  <div class="layout">
-    <aside class="panel left">
-      <h3>⌘ إعدادات البحث</h3>
+  <div class="stats">
+    <div class="stat red"><span>روابط</span><strong id="nUrls">0</strong></div>
+    <div class="stat"><span>طلبات</span><strong id="nReq">0/0</strong></div>
+    <div class="stat"><span>أخطاء</span><strong id="nErr">0</strong></div>
+    <div class="stat"><span>بروكسي</span><strong id="proxyUsed" style="font-size:12px">Direct</strong></div>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
 
-      <div class="section">
-        <label for="dorks">قائمة Dorks / استعلامات البحث</label>
-        <textarea id="dorks" placeholder='"annual report"
-intitle:documentation
-inurl:products
-site:example.com filetype:pdf'></textarea>
-        <div class="hint">كل استعلام في سطر مستقل. تقدر تلصق قائمة طويلة (حتى 300). أو تستورد ملف TXT.</div>
-        <div class="filepick">
-          <input id="dorksFile" type="file" accept=".txt,.csv">
-          <button class="btn mini" id="loadDorks">استيراد ملف</button>
-        </div>
-      </div>
+  <div class="toolbar">
+    <button class="btn" id="saveUrls">↓ حفظ</button>
+    <button class="btn" id="saveUsed">▣ مستعمل</button>
+    <button class="btn" id="copyUrls">نسخ</button>
+    <button class="btn" id="clear">مسح</button>
+  </div>
 
-      <div class="subpanel">
-        <h4>🌐 محركات البحث</h4>
-        <div class="engine-grid">
-          <label class="engine"><input type="checkbox" name="engine" value="bing" checked> Bing</label>
-          <label class="engine"><input type="checkbox" name="engine" value="yahoo" checked> Yahoo</label>
-          <label class="engine"><input type="checkbox" name="engine" value="yahoo-jp"> Yahoo Japan</label>
-        </div>
-        <div class="hint">أنت تختار المحركات. Yahoo غالباً يعطي نتائج أكثر استقراراً حالياً.</div>
-      </div>
-
-      <div class="subpanel">
-        <h4>🛡️ قائمة البروكسيات</h4>
-        <label for="proxyBulk">ألصق البروكسيات أو استورد ملفاً</label>
-        <textarea id="proxyBulk" class="proxybulk" placeholder="192.0.2.10:8080
-SOCKS5 | 192.0.2.11:1080
-SOCKS4 | 192.0.2.12:1080"></textarea>
-        <div class="hint">كل سطر بروكسي. IP:PORT = HTTP، أو TYPE | IP:PORT. يستخدم أول سطر صالح فقط.</div>
-        <div class="filepick">
-          <input id="proxyFile" type="file" accept=".txt,.csv">
-          <button class="btn mini" id="loadProxyFile">استيراد ملف البروكسيات</button>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn primary" id="start">▶ بدء استخراج الروابط</button>
-        <button class="btn" id="stop" disabled>■ إيقاف</button>
-      </div>
-
-      <div class="notice">
-        يستخدم التطبيق طلبات متسلسلة مع مهلة بين الطلبات. تم إزالة الحد القديم (50 Dork) — الحد اللّين الآن 300 لحماية السيرفر.
-        محركات البحث قد ترفض بعض الطلبات أو تغيّر صفحات النتائج.
-      </div>
-    </aside>
-
-    <section>
-      <div class="stats">
-        <div class="stat red"><span>روابط فريدة</span><strong id="nUrls">0</strong></div>
-        <div class="stat"><span>الطلبات</span><strong id="nReq">0/0</strong></div>
-        <div class="stat"><span>الأخطاء</span><strong id="nErr">0</strong></div>
-        <div class="stat"><span>البروكسي المستخدم</span><strong id="proxyUsed" style="font-size:14px">None</strong></div>
-      </div>
-
-      <div class="progress"><div id="bar"></div></div>
-
-      <div class="actions" style="margin-bottom:14px">
-        <button class="btn" id="saveUrls">↓ حفظ الروابط TXT</button>
-        <button class="btn" id="saveUsed">▣ حفظ المستعملة</button>
-        <button class="btn" id="copyUrls">نسخ الروابط</button>
-        <button class="btn" id="clear">مسح الجدول</button>
-      </div>
-
-      <div class="tablehead">
-        <h3>الروابط المستخرجة</h3>
-        <span class="tag" id="state">جاهز</span>
-      </div>
-
-      <div class="tablewrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>الرابط URL</th>
-              <th>النطاق</th>
-              <th>المحرك</th>
-              <th>Dork</th>
-              <th>الحالة</th>
-            </tr>
-          </thead>
-          <tbody id="rows">
-            <tr>
-              <td colspan="6">
-                <div class="empty">
-                  <strong>لا توجد روابط بعد</strong>
-                  أضف قائمة Dorks واختر محرك بحث للبدء.
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="foot">FRS Dork URL Hunter PRIME v1.5.0 · تعتمد النتائج على توفر محركات البحث والفهرسة.</div>
-    </section>
+  <div class="tablehead">
+    <h3>الروابط</h3>
+    <span class="tag" id="state">جاهز</span>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>URL</th>
+          <th>نطاق</th>
+          <th>محرك</th>
+          <th>Dork</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="6"><div class="empty">أضف Dorks وابدأ</div></td></tr>
+      </tbody>
+    </table>
   </div>
 </main>
 
@@ -215,60 +421,45 @@ function toast(s) {
   const t = $('toast');
   t.textContent = s;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
-
 function safe(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[c]));
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-
-async function readFileInput(id, target) {
+async function readFile(id, target) {
   const f = $(id).files[0];
-  if (!f) { toast('اختر ملفاً أولاً'); return; }
+  if (!f) return toast('اختر ملف');
   $(target).value = await f.text();
-  toast('تم تحميل الملف');
+  toast('تم');
 }
-
-$('loadDorks').onclick = () => readFileInput('dorksFile', 'dorks');
-$('loadProxyFile').onclick = () => readFileInput('proxyFile', 'proxyBulk');
+$('loadDorks').onclick = () => readFile('dorksFile', 'dorks');
+$('loadProxyFile').onclick = () => readFile('proxyFile', 'proxyBulk');
 
 function render() {
   $('nUrls').textContent = results.length.toLocaleString();
   $('rows').innerHTML = results.length
-    ? results.map((r, i) => `
-      <tr>
+    ? results.map((r, i) => `<tr>
         <td>${i + 1}</td>
-        <td><a class="url" href="${safe(r.url)}" target="_blank" rel="noopener noreferrer">${safe(r.url)}</a></td>
+        <td><a class="url" href="${safe(r.url)}" target="_blank" rel="noopener">${safe(r.url)}</a></td>
         <td>${safe(r.domain)}</td>
         <td><span class="tag">${safe(r.engine)}</span></td>
         <td>${safe(r.dork)}</td>
-        <td>
-          <button class="btn" style="padding:5px 8px;font-size:10px"
-            onclick="markUsed('${encodeURIComponent(r.url)}')">
-            ${used.has(r.url) ? 'مستعمل ✓' : 'تحديد كمستعمل'}
-          </button>
-        </td>
+        <td><button class="btn" style="padding:4px 7px;font-size:10px;min-height:32px" onclick="markUsed('${encodeURIComponent(r.url)}')">${used.has(r.url) ? '✓' : 'استعمل'}</button></td>
       </tr>`).join('')
-    : `<tr><td colspan="6"><div class="empty"><strong>لا توجد روابط بعد</strong>أضف Dorks واختر محرك بحث للبدء.</div></td></tr>`;
+    : '<tr><td colspan="6"><div class="empty">أضف Dorks وابدأ</div></td></tr>';
 }
-
-window.markUsed = encoded => {
-  used.add(decodeURIComponent(encoded));
+window.markUsed = enc => {
+  used.add(decodeURIComponent(enc));
   localStorage.setItem('frsUsedUrls', JSON.stringify([...used]));
   render();
-  toast('تم تحديد الرابط كمستعمل');
 };
-
 function download(name, text) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
   a.download = name;
   a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  setTimeout(() => URL.revokeObjectURL(a.href), 800);
 }
-
 function updateState(s) { $('state').textContent = s; }
 
 $('start').onclick = async () => {
@@ -276,7 +467,6 @@ $('start').onclick = async () => {
   const dorks = $('dorks').value;
   const engines = [...document.querySelectorAll('input[name="engine"]:checked')].map(x => x.value);
   $('start').disabled = true;
-
   try {
     const r = await fetch('/api/start', {
       method: 'POST',
@@ -285,12 +475,8 @@ $('start').onclick = async () => {
     });
     const raw = await r.text();
     let data;
-    try { data = JSON.parse(raw); }
-    catch {
-      throw new Error('الخادم رجّع صفحة HTML بدل JSON. غالباً server.js القديم مازال منشوراً. ارفع كل ملفات ZIP ثم أعد النشر.');
-    }
-    if (!r.ok) throw new Error(data.error || 'تعذر بدء البحث');
-
+    try { data = JSON.parse(raw); } catch { throw new Error('السيرفر رجّع HTML — أعد رفع الملفات'); }
+    if (!r.ok) throw new Error(data.error || 'فشل');
     jobId = data.id;
     running = true;
     $('stop').disabled = false;
@@ -298,8 +484,8 @@ $('start').onclick = async () => {
     $('nReq').textContent = `0/${data.totalTasks}`;
     $('nErr').textContent = '0';
     updateState('يعمل');
-    toast('بدأ البحث');
-    polling = setInterval(poll, 1500);
+    toast('بدأ');
+    polling = setInterval(poll, 1400);
     poll();
   } catch (e) {
     toast(e.message);
@@ -314,28 +500,22 @@ async function poll() {
     const r = await fetch('/api/status/' + jobId, { headers: { 'Accept': 'application/json' } });
     const raw = await r.text();
     let j;
-    try { j = JSON.parse(raw); }
-    catch {
-      throw new Error('الخادم رجّع HTML بدل JSON (' + r.status + '). غالباً Render يشغّل server.js قديم. افتح /api/health للاختبار.');
-    }
+    try { j = JSON.parse(raw); } catch { throw new Error('HTML بدل JSON'); }
     if (!r.ok) throw new Error(j.error || 'خطأ');
-
     const map = new Map(results.map(x => [x.url, x]));
     (j.urls || []).forEach(x => map.set(x.url, x));
     results = [...map.values()];
     render();
-
     $('nReq').textContent = `${j.completed}/${j.totalTasks}`;
     $('nErr').textContent = (j.errors || []).length;
     $('bar').style.width = (j.totalTasks ? 100 * j.completed / j.totalTasks : 0) + '%';
-
     if (j.done || !j.running) {
       running = false;
       clearInterval(polling);
       polling = null;
       $('stop').disabled = true;
       updateState(j.errors?.length ? 'اكتمل مع أخطاء' : 'اكتمل');
-      toast(`اكتمل البحث: ${results.length} رابط`);
+      toast(results.length + ' رابط');
     }
   } catch (e) {
     clearInterval(polling);
@@ -350,21 +530,18 @@ $('stop').onclick = async () => {
   await fetch('/api/stop/' + jobId, { method: 'POST' });
   updateState('يتوقف');
   $('stop').disabled = true;
-  toast('سيتم الإيقاف بعد الطلب الحالي');
+  toast('إيقاف...');
 };
-
-$('saveUrls').onclick = () => download('frs-extracted-urls.txt', results.map(x => x.url).join('\n'));
-$('saveUsed').onclick = () => download('frs-used-urls.txt', [...used].join('\n'));
+$('saveUrls').onclick = () => download('urls.txt', results.map(x => x.url).join('\n'));
+$('saveUsed').onclick = () => download('used.txt', [...used].join('\n'));
 $('copyUrls').onclick = async () => {
   try {
     await navigator.clipboard.writeText(results.map(x => x.url).join('\n'));
-    toast('تم نسخ الروابط');
-  } catch {
-    toast('استعمل حفظ TXT');
-  }
+    toast('تم النسخ');
+  } catch { toast('استعمل حفظ'); }
 };
 $('clear').onclick = () => {
-  if (running) { toast('أوقف البحث قبل مسح الجدول'); return; }
+  if (running) return toast('أوقف أولاً');
   results = [];
   render();
   $('bar').style.width = '0%';
@@ -372,7 +549,6 @@ $('clear').onclick = () => {
   $('nErr').textContent = '0';
   updateState('جاهز');
 };
-
 render();
 </script>
 </body>
