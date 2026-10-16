@@ -9,13 +9,15 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.use(express.json({ limit: '5mb' }));
+
+// 5MB+ files support
+app.use(express.json({ limit: '6mb' }));
 
 app.get('/api/health', (_req, res) =>
-  res.json({ ok: true, app: 'FRS Dork URL Hunter PRIME DEEP', version: '2.0.0' })
+  res.json({ ok: true, app: 'FRS Dork URL Hunter DEEP PRIVATE', version: '2.1.0' })
 );
 app.get('/health', (_req, res) =>
-  res.json({ ok: true, app: 'FRS Dork URL Hunter PRIME DEEP', version: '2.0.0' })
+  res.json({ ok: true, app: 'FRS Dork URL Hunter DEEP PRIVATE', version: '2.1.0' })
 );
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -31,7 +33,52 @@ app.get('/', (_req, res) => {
 
 const jobs = new Map();
 
-/* ───────── helpers ───────── */
+/* ── Famous / well-known domains to EXCLUDE (private mode) ── */
+const FAMOUS = new Set([
+  'google.com','google.co.uk','google.fr','google.de','google.es','google.it','google.ru',
+  'youtube.com','youtu.be','facebook.com','fb.com','instagram.com','twitter.com','x.com',
+  'linkedin.com','tiktok.com','reddit.com','pinterest.com','tumblr.com','snapchat.com',
+  'wikipedia.org','wikimedia.org','amazon.com','amazon.co.uk','amazon.de','amazon.fr',
+  'ebay.com','ebay.co.uk','alibaba.com','aliexpress.com','walmart.com','etsy.com',
+  'microsoft.com','office.com','live.com','outlook.com','msn.com','bing.com',
+  'apple.com','icloud.com','github.com','gitlab.com','bitbucket.org','stackoverflow.com',
+  'stackexchange.com','medium.com','quora.com','wordpress.com','blogspot.com','blogger.com',
+  'nytimes.com','cnn.com','bbc.com','bbc.co.uk','theguardian.com','forbes.com','reuters.com',
+  'yahoo.com','yahoo.co.jp','yandex.ru','baidu.com','duckduckgo.com',
+  'netflix.com','spotify.com','twitch.tv','discord.com','telegram.org','whatsapp.com',
+  'paypal.com','stripe.com','shopify.com','wix.com','squarespace.com','godaddy.com',
+  'cloudflare.com','aws.amazon.com','azure.com','digitalocean.com','heroku.com',
+  'adobe.com','dropbox.com','box.com','salesforce.com','zoom.us','slack.com',
+  'imdb.com','tripadvisor.com','booking.com','airbnb.com','uber.com',
+  'nih.gov','who.int','cdc.gov','edu','gov', // partial handled below
+  'mozilla.org','w3.org','apache.org','nginx.org','php.net','python.org','nodejs.org',
+  'oracle.com','ibm.com','intel.com','nvidia.com','samsung.com','huawei.com',
+  'vk.com','ok.ru','mail.ru','weibo.com','qq.com','taobao.com','jd.com'
+]);
+
+const FAMOUS_SUFFIXES = [
+  '.google.', '.facebook.', '.amazon.', '.microsoft.', '.apple.',
+  '.wikipedia.', '.youtube.', '.yahoo.', '.bing.', '.github.',
+  '.gov', '.edu', '.mil'
+];
+
+function isFamousDomain(hostname) {
+  if (!hostname) return true;
+  const h = hostname.toLowerCase().replace(/^www\./, '');
+  if (FAMOUS.has(h)) return true;
+  // check parent domains (e.g. maps.google.com)
+  const parts = h.split('.');
+  for (let i = 0; i < parts.length - 1; i++) {
+    const parent = parts.slice(i).join('.');
+    if (FAMOUS.has(parent)) return true;
+  }
+  for (const s of FAMOUS_SUFFIXES) {
+    if (h.includes(s) || h.endsWith(s.replace(/^\./, ''))) return true;
+  }
+  // very short brand-like 2-part popular TLDs already in set
+  return false;
+}
+
 function decodeHtml(s) {
   return String(s || '')
     .replace(/&amp;/g, '&').replace(/&quot;/g, '"')
@@ -70,7 +117,7 @@ function unwrapRedirect(raw) {
 }
 
 function isEngineHost(host) {
-  const h = host.toLowerCase().replace(/^www\./, '');
+  const h = (host || '').toLowerCase().replace(/^www\./, '');
   return /bing\.|microsoft\.|yahoo\.|yimg\.|google\.|duckduckgo\.|live\.com|msn\.com/i.test(h);
 }
 
@@ -86,6 +133,7 @@ function extractLinks(html, engine) {
       if (!['http:', 'https:'].includes(u.protocol)) continue;
       if (/\.(?:jpg|jpeg|png|gif|webp|svg|ico|css|js|woff2?|ttf|pdf|zip|rar|exe|mp[34]|mkv|avi)(?:$|\?)/i.test(u.pathname)) continue;
       if (isEngineHost(u.hostname)) continue;
+      if (isFamousDomain(u.hostname)) continue; // PRIVATE: skip famous
       u.hash = '';
       out.add(u.href);
     } catch {}
@@ -98,7 +146,7 @@ function extractLinks(html, engine) {
       if (!/^https?:\/\//i.test(cite)) cite = 'https://' + cite.replace(/^\/+/, '');
       try {
         const u = new URL(cite);
-        if (['http:', 'https:'].includes(u.protocol) && !isEngineHost(u.hostname)) {
+        if (['http:', 'https:'].includes(u.protocol) && !isEngineHost(u.hostname) && !isFamousDomain(u.hostname)) {
           u.hash = '';
           out.add(u.href);
         }
@@ -108,31 +156,17 @@ function extractLinks(html, engine) {
   return [...out];
 }
 
-/* ───────── Deep: dork expansion ───────── */
 function expandDork(seed) {
   const s = seed.trim();
   if (!s) return [];
   const variants = new Set([s]);
-
-  // If already has operators, generate smart permutations
-  const hasIntext = /intext\s*:/i.test(s);
-  const hasInurl = /inurl\s*:/i.test(s);
-  const hasIntitle = /intitle\s*:/i.test(s);
-  const hasSite = /site\s*:/i.test(s);
-
-  // Extract quoted phrases
   const quotes = [...s.matchAll(/"([^"]+)"/g)].map(m => m[1]);
   const mainQuote = quotes[0] || null;
-
-  // Extract inurl value
   const inurlM = s.match(/inurl\s*:\s*([^\s]+)/i);
   const inurlVal = inurlM ? inurlM[1] : null;
-
-  // Extract site value
   const siteM = s.match(/site\s*:\s*([^\s]+)/i);
   const siteVal = siteM ? siteM[1] : null;
 
-  // Build variants
   if (mainQuote && inurlVal) {
     variants.add(`intext:"${mainQuote}" inurl:${inurlVal}`);
     variants.add(`inurl:${inurlVal} intext:"${mainQuote}"`);
@@ -145,64 +179,51 @@ function expandDork(seed) {
   } else if (mainQuote) {
     variants.add(`intext:"${mainQuote}"`);
     variants.add(`intitle:"${mainQuote}"`);
-    variants.add(`"${mainQuote}"`);
     if (siteVal) variants.add(`site:${siteVal} "${mainQuote}"`);
   } else if (inurlVal) {
     variants.add(`inurl:${inurlVal}`);
     if (siteVal) variants.add(`site:${siteVal} inurl:${inurlVal}`);
   }
-
-  // Common interesting extensions / patterns appended lightly
-  if (inurlVal && !/\.php|\.asp|\.jsp|\.aspx/i.test(inurlVal)) {
-    variants.add(`${s} ext:php`);
-    variants.add(`${s} filetype:php`);
-  }
-
-  // Limit expansion so it stays controlled
-  return [...variants].slice(0, 8);
+  return [...variants].slice(0, 6);
 }
 
-/* ───────── Private ranking score ───────── */
+/** Higher = more private / interesting unknown target */
 function privateScore(url) {
   let score = 0;
   const u = url.toLowerCase();
-  // Interesting paths
-  if (/\/(admin|login|dashboard|panel|cp|manage|backend|console|wp-admin|phpmyadmin)/i.test(u)) score += 12;
-  if (/\.php(\?|$)/i.test(u)) score += 8;
-  if (/\.asp|\.aspx|\.jsp|\.cgi/i.test(u)) score += 6;
-  if (/\?(id|file|page|dir|path|doc|document|cat|category|product|user|uid|pid)=/i.test(u)) score += 10;
-  if (/(\?|&)(redirect|url|next|return|continue|dest|destination)=/i.test(u)) score += 7;
-  if (/config|setup|install|backup|dump|sql|db|database|env|secret|key|token|api/i.test(u)) score += 9;
-  if (/error|exception|warning|stack|trace|debug/i.test(u)) score += 8;
-  if (/index\s+of|parent\s+directory/i.test(u)) score += 11;
-  // Prefer longer / more specific paths
-  try {
-    const pathLen = new URL(url).pathname.split('/').filter(Boolean).length;
-    score += Math.min(pathLen, 5);
-  } catch {}
-  // Penalize very generic home pages
+  let host = '';
+  try { host = new URL(url).hostname.toLowerCase().replace(/^www\./, ''); } catch { return -100; }
+
+  if (isFamousDomain(host)) return -100;
+
+  // obscure TLD / long host slightly preferred
+  if (/\.(tk|ml|ga|cf|gq|xyz|top|club|online|site|website|info|biz|cc|ws)$/i.test(host)) score += 4;
+  if (host.split('.').length >= 3) score += 2; // subdomain
+
+  if (/\/(admin|login|dashboard|panel|cp|manage|backend|console|wp-admin|phpmyadmin|cpanel)/i.test(u)) score += 14;
+  if (/\.php(\?|$)/i.test(u)) score += 9;
+  if (/\.(asp|aspx|jsp|cgi)(\?|$)/i.test(u)) score += 7;
+  if (/\?(id|file|page|dir|path|doc|cat|user|uid|pid|item)=/i.test(u)) score += 11;
+  if (/(\?|&)(redirect|url|next|return|continue|dest)=/i.test(u)) score += 8;
+  if (/config|setup|install|backup|dump|sql|database|\.env|secret|token|api[_-]?key/i.test(u)) score += 10;
+  if (/error|exception|warning|stack|trace|debug|pdoexception/i.test(u)) score += 9;
+  if (/index\s+of|parent\s+directory/i.test(u)) score += 12;
+
   try {
     const { pathname, search } = new URL(url);
-    if ((pathname === '/' || pathname === '') && !search) score -= 5;
+    const depth = pathname.split('/').filter(Boolean).length;
+    score += Math.min(depth, 6);
+    if ((pathname === '/' || pathname === '') && !search) score -= 8;
   } catch {}
+
   return score;
 }
 
-/* ───────── search URL builders (with pagination) ───────── */
 function searchUrl(engine, query, page = 0) {
   const q = encodeURIComponent(query);
-  if (engine === 'bing') {
-    const first = page * 10 + 1;
-    return `https://www.bing.com/search?q=${q}&count=50&first=${first}`;
-  }
-  if (engine === 'yahoo-jp') {
-    // Yahoo JP uses b= for offset roughly
-    const b = page * 10 + 1;
-    return `https://search.yahoo.co.jp/search?p=${q}&ei=UTF-8&b=${b}`;
-  }
-  // Yahoo US
-  const b = page * 10 + 1;
-  return `https://search.yahoo.com/search?p=${q}&n=40&b=${b}`;
+  if (engine === 'bing') return `https://www.bing.com/search?q=${q}&count=50&first=${page * 10 + 1}`;
+  if (engine === 'yahoo-jp') return `https://search.yahoo.co.jp/search?p=${q}&ei=UTF-8&b=${page * 10 + 1}`;
+  return `https://search.yahoo.com/search?p=${q}&n=40&b=${page * 10 + 1}`;
 }
 
 function parseProxyLine(line) {
@@ -220,8 +241,8 @@ function fetchSearch(engine, query, proxyInfo, page = 0) {
   const startUrl = searchUrl(engine, query, page);
   const headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-    'Accept-Language': engine === 'yahoo-jp' ? 'ja,en-US;q=0.8' : 'en-US,en;q=0.9',
+    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': engine === 'yahoo-jp' ? 'ja,en;q=0.8' : 'en-US,en;q=0.9',
     'Accept-Encoding': 'identity',
     'Cache-Control': 'max-age=0',
     'Upgrade-Insecure-Requests': '1',
@@ -236,14 +257,13 @@ function fetchSearch(engine, query, proxyInfo, page = 0) {
     else if (proxyInfo.type === 'socks5') agent = new SocksProxyAgent('socks5h://' + proxyInfo.addr);
     else agent = new HttpsProxyAgent('http://' + proxyInfo.addr);
   }
-
   return new Promise((resolve, reject) => {
     let redirects = 0;
     function go(currentUrl) {
       let parsed;
       try { parsed = new URL(currentUrl); } catch { return reject(new Error(`${engine}: bad url`)); }
       const lib = parsed.protocol === 'http:' ? http : https;
-      const req = lib.get(currentUrl, { headers, agent, timeout: 20000 }, response => {
+      const req = lib.get(currentUrl, { headers, agent, timeout: 18000 }, response => {
         if ([301, 302, 303, 307, 308].includes(response.statusCode) && response.headers.location && redirects < 5) {
           redirects++;
           let next = response.headers.location;
@@ -253,11 +273,11 @@ function fetchSearch(engine, query, proxyInfo, page = 0) {
         }
         let body = '';
         response.setEncoding('utf8');
-        response.on('data', c => { body += c; if (body.length > 3e6) req.destroy(new Error('too large')); });
+        response.on('data', c => { body += c; if (body.length > 2.5e6) req.destroy(new Error('too large')); });
         response.on('end', () => {
           if (response.statusCode < 200 || response.statusCode >= 300)
             return reject(new Error(`${engine}: HTTP ${response.statusCode}`));
-          if (body.length < 800 && /captcha|unusual traffic|robot|blocked/i.test(body))
+          if (body.length < 600 && /captcha|unusual traffic|robot|blocked/i.test(body))
             return reject(new Error(`${engine}: blocked`));
           resolve(body);
         });
@@ -276,7 +296,7 @@ async function runPool(tasks, concurrency, onTask, shouldContinue) {
     while (shouldContinue()) {
       const i = index++;
       if (i >= tasks.length) break;
-      await onTask(tasks[i], i);
+      await onTask(tasks[i]);
     }
   }
   const n = Math.min(concurrency, Math.max(1, tasks.length));
@@ -284,11 +304,18 @@ async function runPool(tasks, concurrency, onTask, shouldContinue) {
   await Promise.all(workers);
 }
 
-/* ───────── API ───────── */
 app.post('/api/start', (req, res) => {
+  // Accept large batches (client splits 1M into chunks)
   const seedDorks = [
     ...new Set(String(req.body.dorks || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean))
   ];
+  // Soft per-request cap to protect RAM (client batches the rest)
+  if (seedDorks.length > 25000) {
+    return res.status(400).json({
+      error: 'هذا الطلب فيه أكثر من 25000 دورك. التطبيق يقرأ الملف على دفعات تلقائياً — قلّل حجم الدفعة أو استعمل الاستيراد.'
+    });
+  }
+
   const engines = [
     ...new Set((Array.isArray(req.body.engines) ? req.body.engines : []).filter(e =>
       ['bing', 'yahoo', 'yahoo-jp'].includes(e)
@@ -300,7 +327,8 @@ app.post('/api/start', (req, res) => {
   if (threads > 200) threads = 200;
 
   const deep = !!req.body.deep;
-  const deepPages = deep ? Math.min(Math.max(parseInt(req.body.deepPages, 10) || 3, 1), 5) : 1;
+  const deepPages = deep ? Math.min(Math.max(parseInt(req.body.deepPages, 10) || 2, 1), 4) : 1;
+  const privateOnly = req.body.privateOnly !== false; // default ON
 
   const proxies = [];
   for (const line of String(req.body.proxyList || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean)) {
@@ -311,17 +339,13 @@ app.post('/api/start', (req, res) => {
   if (!seedDorks.length) return res.status(400).json({ error: 'أضف دورك واحد على الأقل.' });
   if (!engines.length) return res.status(400).json({ error: 'اختار محرك واحد على الأقل.' });
 
-  // Expand dorks if deep mode
   let allDorks = seedDorks;
   if (deep) {
     const expanded = new Set();
-    for (const d of seedDorks) {
-      for (const v of expandDork(d)) expanded.add(v);
-    }
+    for (const d of seedDorks) for (const v of expandDork(d)) expanded.add(v);
     allDorks = [...expanded];
   }
 
-  // Tasks: dork × engine × page
   const tasks = [];
   for (const dork of allDorks) {
     for (const engine of engines) {
@@ -333,17 +357,22 @@ app.post('/api/start', (req, res) => {
 
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const job = {
-    id, threads, deep, deepPages, proxies,
+    id, threads, deep, deepPages, privateOnly, proxies,
     running: true, done: false,
     totalTasks: tasks.length,
     completed: 0,
     urls: [],
     errors: [],
     expandedDorks: allDorks.length,
-    seedCount: seedDorks.length,
     startedAt: Date.now()
   };
   jobs.set(id, job);
+
+  // Cleanup old jobs (keep last 20)
+  if (jobs.size > 25) {
+    const keys = [...jobs.keys()];
+    for (let i = 0; i < keys.length - 20; i++) jobs.delete(keys[i]);
+  }
 
   res.json({
     id,
@@ -351,6 +380,7 @@ app.post('/api/start', (req, res) => {
     threads,
     deep,
     expandedDorks: allDorks.length,
+    privateOnly,
     proxyName: proxies.length ? `Rotating ${proxies.length}` : 'Direct'
   });
 
@@ -364,9 +394,7 @@ app.post('/api/start', (req, res) => {
       async (task) => {
         if (!job.running) return;
         let proxyInfo = null;
-        if (proxies.length) {
-          proxyInfo = proxies[proxyCounter++ % proxies.length];
-        }
+        if (proxies.length) proxyInfo = proxies[proxyCounter++ % proxies.length];
         try {
           const html = await fetchSearch(task.engine, task.dork, proxyInfo, task.page);
           const links = extractLinks(html, task.engine);
@@ -375,7 +403,9 @@ app.post('/api/start', (req, res) => {
             seen.add(url);
             let domain = '';
             try { domain = new URL(url).hostname; } catch {}
+            if (privateOnly && isFamousDomain(domain)) continue;
             const score = privateScore(url);
+            if (privateOnly && score < 0) continue;
             job.urls.push({
               url, domain, dork: task.dork, engine: task.engine,
               page: task.page + 1, score,
@@ -385,9 +415,9 @@ app.post('/api/start', (req, res) => {
         } catch (e) {
           job.errors.push({
             engine: task.engine,
-            dork: task.dork.slice(0, 90),
+            dork: String(task.dork).slice(0, 80),
             page: task.page + 1,
-            message: String(e.message || e).slice(0, 160),
+            message: String(e.message || e).slice(0, 140),
             proxy: proxyInfo ? proxyInfo.addr : 'direct'
           });
         }
@@ -396,8 +426,9 @@ app.post('/api/start', (req, res) => {
       () => job.running
     );
 
-    // Sort by private score (best first)
     job.urls.sort((a, b) => (b.score || 0) - (a.score || 0));
+    // Cap stored results per job to protect memory (client can download)
+    if (job.urls.length > 15000) job.urls = job.urls.slice(0, 15000);
     job.running = false;
     job.done = true;
     job.finishedAt = Date.now();
@@ -407,6 +438,8 @@ app.post('/api/start', (req, res) => {
 app.get('/api/status/:id', (req, res) => {
   const j = jobs.get(req.params.id);
   if (!j) return res.status(404).json({ error: 'Job not found' });
+  // Light payload: only send urls if not huge, or top scored
+  const urls = j.urls.length > 3000 ? j.urls.slice(0, 3000) : j.urls;
   res.json({
     id: j.id,
     running: j.running,
@@ -416,8 +449,9 @@ app.get('/api/status/:id', (req, res) => {
     threads: j.threads,
     deep: j.deep,
     expandedDorks: j.expandedDorks,
-    urls: j.urls,
-    errors: j.errors.slice(-80),
+    totalUrls: j.urls.length,
+    urls,
+    errors: j.errors.slice(-40),
     proxyName: j.proxies.length ? `Rotating ${j.proxies.length}` : 'Direct'
   });
 });
@@ -433,4 +467,4 @@ app.use('/api', (req, res) =>
   res.status(404).json({ error: `API route not found: ${req.method} ${req.path}` })
 );
 
-app.listen(PORT, () => console.log(`FRS Dork URL Hunter PRIME DEEP v2.0.0 on ${PORT}`));
+app.listen(PORT, () => console.log(`FRS Dork Hunter DEEP PRIVATE v2.1.0 on ${PORT}`));

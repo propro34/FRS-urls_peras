@@ -1,7 +1,7 @@
 {
   "name": "frs-dork-url-hunter",
-  "version": "2.0.0",
-  "description": "FRS Dork URL Hunter PRIME Deep - deep expansion, multi-page, private ranking",
+  "version": "2.1.0",
+  "description": "FRS Dork Hunter DEEP Private - light UI, 5MB files, 1M dorks batched, unknown sites only",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": {
