@@ -1,15 +1,36 @@
-# FRS Dork URL Hunter PRIME v1.5.1
+# FRS Dork URL Hunter PRIME v1.5.0
 
-Node.js/Express app with two separate modes:
-- **Offline URL extraction:** paste text or HTML and extract/deduplicate HTTP(S) URLs. No network requests are made in this mode. An optional base URL resolves relative links.
-- **Live search:** Bing/Yahoo search constrained to explicitly entered authorized domains, with request diagnostics. Availability depends on search-engine behavior and network access.
+استخراج روابط من استعلامات البحث (Google-style Dorks) عبر Bing / Yahoo / Yahoo Japan مع دعم البروكسي.
 
-## Run locally
-1. Install Node.js 18 or newer.
-2. Run `npm install`.
-3. Run `npm start`.
-4. Open `http://localhost:3000`.
+## التغييرات في v1.5.0
+- **إزالة الحد القديم 50 Dork** → الحد اللّين الآن 300 (حماية السيرفر فقط).
+- تحسين استخراج الروابط:
+  - فكّ تشفير روابط Bing `/ck/a` عند الإمكان.
+  - استخراج من وسوم `<cite>` في Bing.
+  - تحسين فكّ روابط Yahoo `RU=`.
+- تقليل وقت الانتظار بين الطلبات قليلاً.
+- واجهة وحدود أوضح.
 
-Health check: `/api/health`. Offline extractor API: `POST /api/extract` with JSON `{ "text": "...", "baseUrl": "https://example.org/" }`.
+## تشغيل محلي
+```bash
+npm install
+npm start
+```
+ثم افتح `http://localhost:3000`
 
-Live search accepts up to 50 queries and 20 authorized domains per job. Only test domains for which you have permission.
+## نشر على Render
+- Root Directory: اتركه فارغاً إذا كانت الملفات في جذر المستودع.
+- Build Command: `npm install`
+- Start Command: `npm start`
+- Runtime: Node
+
+ارفع **كل** محتويات المجلد (`server.js`, `package.json`, `public/index.html`).
+
+## فحص الصحة
+- `/health` و `/api/health` يجب أن يرجعا JSON مع `version: "1.5.0"`.
+- إذا رجعا HTML فالسيرفر القديم مازال يعمل → أعد رفع الملفات وأعد النشر.
+
+## ملاحظات
+- محركات البحث تغيّر صفحاتها وتحجب الطلبات المتكررة. استخدم بروكسيات جيدة واترك فواصل زمنية.
+- النتائج تعتمد على الفهرسة وتوفر المحرك في لحظة الطلب.
+- هذا الأداة للبحث المشروع والاختبار فقط.

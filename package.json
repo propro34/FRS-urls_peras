@@ -1,7 +1,7 @@
 {
   "name": "frs-dork-url-hunter",
-  "version": "1.5.1",
-  "description": "Scoped search plus offline URL extraction and API diagnostics",
+  "version": "1.5.0",
+  "description": "FRS Dork URL Hunter PRIME - extract URLs from search dorks without artificial limits",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
