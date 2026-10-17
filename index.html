@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#08080d">
-<title>FRS Dork Hunter PRIVATE</title>
+<meta name="theme-color" content="#0a0a0f">
+<title>FRS Dork URL Hunter SPEED</title>
 <style>
 :root{--bg:#08080d;--panel:#12121a;--line:#2c2c38;--red:#ff304f;--muted:#9a9aaa;--text:#f4f4fa;--safe:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -20,7 +20,7 @@ header{padding:12px 14px;border-bottom:1px solid var(--line);background:#0d0d14f
 label{display:block;color:#d0d0dc;font-size:11px;font-weight:700;margin-bottom:4px}
 textarea{width:100%;background:#09090f;border:1px solid #353544;border-radius:9px;padding:10px;color:var(--text);outline:none;font:12px/1.5 ui-monospace,Consolas,monospace;resize:vertical}
 textarea:focus{border-color:var(--red)}
-#dorks{min-height:90px}.proxybulk{min-height:56px}
+#dorks{min-height:100px}.proxybulk{min-height:56px}
 .sub{border:1px solid #323240;background:#0e0e15;border-radius:10px;padding:10px;margin:8px 0}
 .sub h4{margin:0 0 7px;font-size:11px}
 .engines{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
@@ -53,15 +53,13 @@ input[type=range]{width:100%;accent-color:var(--red)}
 .tablehead h3{margin:0;font-size:13px}
 .tag{display:inline-block;padding:2px 5px;border:1px solid #3a3a48;border-radius:5px;color:#b8b8c6;font-size:10px}
 .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;max-height:48vh;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;min-width:500px;font-size:11px}
+table{width:100%;border-collapse:collapse;min-width:480px;font-size:11px}
 th{position:sticky;top:0;background:#1e1e28;color:#d0d0dc;text-align:right;padding:8px 6px;z-index:1}
 td{padding:7px 6px;border-top:1px solid #262630;vertical-align:top}
 .url{color:#ff7d91;word-break:break-all;text-decoration:none}
-.score{color:#66e0a8;font-weight:700}
 .empty{text-align:center;padding:28px 8px;color:var(--muted);font-size:12px}
 .toast{position:fixed;bottom:calc(12px + var(--safe));left:50%;transform:translateX(-50%);padding:9px 12px;background:#242430;border:1px solid #444452;border-radius:9px;display:none;z-index:30;max-width:calc(100vw - 24px);font-size:12px;text-align:center}
 .toast.show{display:block}
-#fileInfo{font-size:11px;color:var(--muted);margin-top:4px}
 @media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.toolbar{grid-template-columns:repeat(2,1fr)}.brand h1{font-size:12px}}
 @media(max-width:380px){.engines{grid-template-columns:1fr}}
 </style>
@@ -70,20 +68,19 @@ td{padding:7px 6px;border-top:1px solid #262630;vertical-align:top}
 <header>
   <div class="brand">
     <div class="logo">FRS</div>
-    <h1>DORK HUNTER <span>PRIVATE</span></h1>
+    <h1>DORK URL HUNTER <span>SPEED</span></h1>
   </div>
 </header>
 
 <main class="wrap">
   <div class="panel">
-    <h3>إعدادات · خفيف · Private</h3>
-    <label>Dorks (أو استورد ملف حتى 5MB / حتى ~مليون سطر على دفعات)</label>
-    <textarea id="dorks" placeholder="دوركات قليلة هنا... للملفات الكبيرة استعمل الاستيراد"></textarea>
+    <h3>إعدادات · سرعة عالية · بدون تكرار</h3>
+    <label>Dorks (سطر لكل واحد)</label>
+    <textarea id="dorks" placeholder="ضع الدوركات هنا — سطر لكل دورك"></textarea>
     <div class="filepick">
-      <input id="dorksFile" type="file" accept=".txt,.csv,.text">
-      <button class="btn mini" id="loadDorks">استيراد ملف كبير</button>
+      <input id="dorksFile" type="file" accept=".txt,.csv">
+      <button class="btn mini" id="loadDorks">استيراد ملف</button>
     </div>
-    <div id="fileInfo"></div>
 
     <div class="sub">
       <h4>المحركات</h4>
@@ -95,32 +92,32 @@ td{padding:7px 6px;border-top:1px solid #262630;vertical-align:top}
     </div>
 
     <div class="sub">
-      <h4>Deep + Private</h4>
+      <h4>Deep + سرعة</h4>
       <div class="toggle">
-        <label><input type="checkbox" id="deep" checked> Deep</label>
-        <label><input type="checkbox" id="privateOnly" checked> مواقع غير معروفة فقط</label>
+        <label><input type="checkbox" id="deep" checked> Deep (توسيع + صفحات)</label>
         <label>صفحات
           <select id="deepPages" style="background:#09090f;color:#fff;border:1px solid #353544;border-radius:6px;padding:3px 6px;margin-right:4px">
-            <option value="2" selected>2</option>
-            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
             <option value="4">4</option>
+            <option value="5">5</option>
           </select>
         </label>
       </div>
-      <div class="note">Private يستبعد Google / Facebook / Wikipedia / Amazon / GitHub… ويبقي المواقع المجهولة. الملفات الكبيرة تتعالج على دفعات بدون ما يتجمّد المتصفح.</div>
+      <div class="note">استخراج روابط من نتائج البحث فقط. بدون تكرار. Threads عالية = أسرع (مع بروكسيات أفضل).</div>
     </div>
 
     <div class="sub">
       <h4>Threads (50–200)</h4>
       <div class="row">
-        <input type="range" id="threads" min="50" max="200" step="10" value="80">
-        <div class="val" id="threadsVal">80</div>
+        <input type="range" id="threads" min="50" max="200" step="10" value="100">
+        <div class="val" id="threadsVal">100</div>
       </div>
     </div>
 
     <div class="sub">
-      <h4>بروكسيات</h4>
-      <textarea id="proxyBulk" class="proxybulk" placeholder="IP:PORT"></textarea>
+      <h4>بروكسيات (دوران)</h4>
+      <textarea id="proxyBulk" class="proxybulk" placeholder="IP:PORT&#10;SOCKS5 | IP:PORT"></textarea>
       <div class="filepick">
         <input id="proxyFile" type="file" accept=".txt,.csv">
         <button class="btn mini" id="loadProxyFile">استيراد</button>
@@ -134,28 +131,28 @@ td{padding:7px 6px;border-top:1px solid #262630;vertical-align:top}
   </div>
 
   <div class="stats">
-    <div class="stat red"><span>روابط معروضة</span><strong id="nUrls">0</strong></div>
+    <div class="stat red"><span>روابط فريدة</span><strong id="nUrls">0</strong></div>
     <div class="stat"><span>طلبات</span><strong id="nReq">0/0</strong></div>
-    <div class="stat"><span>دفعات</span><strong id="nBatch">0</strong></div>
-    <div class="stat"><span>Threads</span><strong id="nTh" style="font-size:14px">80</strong></div>
+    <div class="stat"><span>موسّعة</span><strong id="nExp">0</strong></div>
+    <div class="stat"><span>Threads</span><strong id="nTh" style="font-size:14px">100</strong></div>
   </div>
   <div class="progress"><div id="bar"></div></div>
 
   <div class="toolbar">
     <button class="btn" id="saveUrls">↓ حفظ</button>
-    <button class="btn" id="saveUsed">▣ مستعمل</button>
     <button class="btn" id="copyUrls">نسخ</button>
     <button class="btn" id="clear">مسح</button>
+    <button class="btn" id="saveAll">↓ الكل</button>
   </div>
 
   <div class="tablehead">
-    <h3>روابط Private (أعلى سكور · حد العرض 800)</h3>
+    <h3>الروابط (بدون تكرار · عرض 1000)</h3>
     <span class="tag" id="state">جاهز</span>
   </div>
   <div class="tablewrap">
     <table>
-      <thead><tr><th>#</th><th>URL</th><th>سكور</th><th>نطاق</th><th>محرك</th><th></th></tr></thead>
-      <tbody id="rows"><tr><td colspan="6"><div class="empty">جاهز — استورد ملف أو الصق دوركات</div></td></tr></tbody>
+      <thead><tr><th>#</th><th>URL</th><th>نطاق</th><th>محرك</th><th>Dork</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="5"><div class="empty">أضف دوركات وابدأ</div></td></tr></tbody>
     </table>
   </div>
 </main>
@@ -163,197 +160,87 @@ td{padding:7px 6px;border-top:1px solid #262630;vertical-align:top}
 <div class="toast" id="toast"></div>
 <script>
 const $=id=>document.getElementById(id);
-const MAX_SHOW = 800;          // keep DOM light
-const BATCH_SIZE = 8000;       // dorks per API request (safe for 5MB path)
-const MAX_FILE_MB = 5;
+const MAX_SHOW=1000;
+let jobId=null,polling=null,results=[],urlSet=new Set(),running=false;
 
-let jobId = null, polling = null, results = [], used = new Set(JSON.parse(localStorage.getItem('frsUsedUrls')||'[]'));
-let running = false, stopFlag = false;
-let fileDorks = null; // array from large file (not in textarea)
-let batchTotal = 0, batchDone = 0, allTasksEstimate = 0, completedGlobal = 0;
+$('threads').oninput=()=>{$('threadsVal').textContent=$('threads').value;$('nTh').textContent=$('threads').value};
 
-$('threads').oninput = () => { $('threadsVal').textContent = $('threads').value; $('nTh').textContent = $('threads').value; };
+function toast(s){const t=$('toast');t.textContent=s;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+function safe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function readFile(id,t){const f=$(id).files[0];if(!f)return toast('اختر ملف');$(t).value=await f.text();toast('تم')}
+$('loadDorks').onclick=()=>readFile('dorksFile','dorks');
+$('loadProxyFile').onclick=()=>readFile('proxyFile','proxyBulk');
 
-function toast(s) {
-  const t = $('toast'); t.textContent = s; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+function render(){
+  $('nUrls').textContent=results.length.toLocaleString();
+  const view=results.slice(-MAX_SHOW);
+  $('rows').innerHTML=view.length?view.map((r,i)=>`<tr>
+    <td>${results.length-view.length+i+1}</td>
+    <td><a class="url" href="${safe(r.url)}" target="_blank" rel="noopener">${safe(r.url)}</a></td>
+    <td>${safe(r.domain)}</td>
+    <td><span class="tag">${safe(r.engine)}</span></td>
+    <td>${safe(r.dork)}</td>
+  </tr>`).join(''):'<tr><td colspan="5"><div class="empty">أضف دوركات وابدأ</div></td></tr>';
 }
-function safe(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+function download(n,t){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain;charset=utf-8'}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),800)}
+function updateState(s){$('state').textContent=s}
 
-// Light file load — does NOT put 1M lines in textarea
-$('loadDorks').onclick = async () => {
-  const f = $('dorksFile').files[0];
-  if (!f) return toast('اختر ملف');
-  if (f.size > MAX_FILE_MB * 1024 * 1024) return toast('الملف أكبر من 5MB');
-  $('fileInfo').textContent = 'جاري قراءة الملف...';
-  try {
-    const text = await f.text();
-    const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-    // dedupe in chunks to avoid freeze
-    const set = new Set();
-    for (let i = 0; i < lines.length; i++) {
-      set.add(lines[i]);
-      if (i % 50000 === 0 && i > 0) await new Promise(r => setTimeout(r, 0)); // yield to UI
+$('start').onclick=async()=>{
+  if(running)return;
+  const dorks=$('dorks').value;
+  const engines=[...document.querySelectorAll('input[name="engine"]:checked')].map(x=>x.value);
+  const threads=parseInt($('threads').value,10)||100;
+  const deep=$('deep').checked;
+  const deepPages=parseInt($('deepPages').value,10)||3;
+  if(!dorks.trim())return toast('أضف دوركات');
+  if(!engines.length)return toast('اختار محرك');
+  $('start').disabled=true;
+  try{
+    const r=await fetch('/api/start',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({dorks,engines,proxyList:$('proxyBulk').value,threads,deep,deepPages})});
+    const raw=await r.text();let data;try{data=JSON.parse(raw)}catch{throw new Error('HTML بدل JSON — أعد رفع الملفات')}
+    if(!r.ok)throw new Error(data.error||'فشل');
+    jobId=data.id;running=true;$('stop').disabled=false;
+    $('nTh').textContent=data.threads||threads;
+    $('nExp').textContent=data.expandedDorks||0;
+    $('nReq').textContent=`0/${data.totalTasks}`;
+    updateState('يعمل');
+    toast(`بدأ · ${data.threads} threads · ${data.expandedDorks||0} دورك`);
+    polling=setInterval(poll,1000);poll();
+  }catch(e){toast(e.message)}finally{$('start').disabled=false}
+};
+
+async function poll(){
+  if(!jobId)return;
+  try{
+    const r=await fetch('/api/status/'+jobId,{headers:{'Accept':'application/json'}});
+    const raw=await r.text();let j;try{j=JSON.parse(raw)}catch{throw new Error('HTML بدل JSON')}
+    if(!r.ok)throw new Error(j.error||'خطأ');
+    let added=0;
+    (j.urls||[]).forEach(x=>{
+      const k=(x.url||'').toLowerCase().replace(/\/$/,'');
+      if(!k||urlSet.has(k))return;
+      urlSet.add(k);results.push(x);added++;
+    });
+    if(added)render();
+    else $('nUrls').textContent=results.length.toLocaleString();
+    $('nReq').textContent=`${j.completed}/${j.totalTasks}`;
+    if(j.expandedDorks)$('nExp').textContent=j.expandedDorks;
+    if(j.threads)$('nTh').textContent=j.threads;
+    $('bar').style.width=(j.totalTasks?100*j.completed/j.totalTasks:0)+'%';
+    if(j.done||!j.running){
+      running=false;clearInterval(polling);polling=null;$('stop').disabled=true;
+      updateState(j.errors?.length?'اكتمل مع أخطاء':'اكتمل');
+      toast(results.length.toLocaleString()+' رابط فريد');
     }
-    fileDorks = [...set];
-    $('dorks').value = fileDorks.slice(0, 30).join('\n') + (fileDorks.length > 30 ? '\n… (' + fileDorks.length + ' دورك جاهز من الملف)' : '');
-    $('fileInfo').textContent = `تم تحميل ${fileDorks.length.toLocaleString()} دورك فريد · ${(f.size/1024).toFixed(0)} KB · بدون تجميد`;
-    toast(fileDorks.length.toLocaleString() + ' دورك جاهز');
-  } catch (e) {
-    $('fileInfo').textContent = '';
-    toast('فشل قراءة الملف');
-  }
-};
-
-$('loadProxyFile').onclick = async () => {
-  const f = $('proxyFile').files[0];
-  if (!f) return toast('اختر ملف');
-  $('proxyBulk').value = await f.text();
-  toast('بروكسيات');
-};
-
-function render() {
-  // Only render top MAX_SHOW by score — keeps browser light
-  const view = results.slice(0, MAX_SHOW);
-  $('nUrls').textContent = results.length.toLocaleString() + (results.length > MAX_SHOW ? ' (عرض '+MAX_SHOW+')' : '');
-  $('rows').innerHTML = view.length
-    ? view.map((r, i) => `<tr>
-        <td>${i+1}</td>
-        <td><a class="url" href="${safe(r.url)}" target="_blank" rel="noopener">${safe(r.url)}</a></td>
-        <td class="score">${r.score??0}</td>
-        <td>${safe(r.domain)}</td>
-        <td><span class="tag">${safe(r.engine)}</span></td>
-        <td><button class="btn" style="padding:3px 5px;font-size:10px;min-height:28px" onclick="markUsed('${encodeURIComponent(r.url)}')">${used.has(r.url)?'✓':'✓'}</button></td>
-      </tr>`).join('')
-    : '<tr><td colspan="6"><div class="empty">لا نتائج بعد</div></td></tr>';
-}
-window.markUsed = enc => { used.add(decodeURIComponent(enc)); localStorage.setItem('frsUsedUrls', JSON.stringify([...used])); render(); };
-function download(n, t) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([t], { type: 'text/plain;charset=utf-8' }));
-  a.download = n; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 800);
-}
-function updateState(s) { $('state').textContent = s; }
-
-function getDorkList() {
-  if (fileDorks && fileDorks.length) return fileDorks;
-  return [...new Set($('dorks').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean))];
+  }catch(e){clearInterval(polling);polling=null;running=false;toast(e.message)}
 }
 
-async function runOneBatch(dorkChunk, engines, threads, deep, deepPages, privateOnly, proxyList) {
-  const r = await fetch('/api/start', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ dorks: dorkChunk.join('\n'), engines, threads, deep, deepPages, privateOnly, proxyList })
-  });
-  const raw = await r.text();
-  let data;
-  try { data = JSON.parse(raw); } catch { throw new Error('HTML بدل JSON'); }
-  if (!r.ok) throw new Error(data.error || 'فشل الدفعة');
-  jobId = data.id;
-  return data;
-}
-
-async function pollUntilDone() {
-  return new Promise((resolve, reject) => {
-    const tick = async () => {
-      if (stopFlag) { try { await fetch('/api/stop/' + jobId, { method: 'POST' }); } catch {} return resolve(); }
-      try {
-        const r = await fetch('/api/status/' + jobId, { headers: { Accept: 'application/json' } });
-        const raw = await r.text();
-        let j; try { j = JSON.parse(raw); } catch { throw new Error('HTML'); }
-        if (!r.ok) throw new Error(j.error || 'خطأ');
-        const map = new Map(results.map(x => [x.url, x]));
-        (j.urls || []).forEach(x => map.set(x.url, x));
-        results = [...map.values()].sort((a, b) => (b.score || 0) - (a.score || 0));
-        // keep memory light
-        if (results.length > 20000) results = results.slice(0, 20000);
-        render();
-        completedGlobal = batchDone * 1000 + j.completed; // rough
-        $('nReq').textContent = `${j.completed}/${j.totalTasks}`;
-        const batchPct = batchTotal ? (batchDone + (j.done ? 1 : j.completed / Math.max(1, j.totalTasks))) / batchTotal : 0;
-        $('bar').style.width = Math.min(100, batchPct * 100) + '%';
-        if (j.done || !j.running) return resolve(j);
-        setTimeout(tick, 1200);
-      } catch (e) { reject(e); }
-    };
-    tick();
-  });
-}
-
-$('start').onclick = async () => {
-  if (running) return;
-  const all = getDorkList();
-  if (!all.length) return toast('أضف دوركات أو استورد ملف');
-  const engines = [...document.querySelectorAll('input[name="engine"]:checked')].map(x => x.value);
-  if (!engines.length) return toast('اختار محرك');
-  const threads = parseInt($('threads').value, 10) || 80;
-  const deep = $('deep').checked;
-  const deepPages = parseInt($('deepPages').value, 10) || 2;
-  const privateOnly = $('privateOnly').checked;
-  const proxyList = $('proxyBulk').value;
-
-  // Split into batches for 1M support without freezing
-  const batches = [];
-  for (let i = 0; i < all.length; i += BATCH_SIZE) batches.push(all.slice(i, i + BATCH_SIZE));
-  batchTotal = batches.length;
-  batchDone = 0;
-  stopFlag = false;
-  running = true;
-  $('start').disabled = true;
-  $('stop').disabled = false;
-  $('nBatch').textContent = `0/${batchTotal}`;
-  $('nTh').textContent = threads;
-  updateState('يعمل');
-  toast(`${all.length.toLocaleString()} دورك · ${batchTotal} دفعة`);
-
-  try {
-    for (let bi = 0; bi < batches.length; bi++) {
-      if (stopFlag) break;
-      $('nBatch').textContent = `${bi + 1}/${batchTotal}`;
-      updateState(`دفعة ${bi + 1}/${batchTotal}`);
-      await runOneBatch(batches[bi], engines, threads, deep, deepPages, privateOnly, proxyList);
-      await pollUntilDone();
-      batchDone = bi + 1;
-      // yield to keep UI responsive
-      await new Promise(r => setTimeout(r, 50));
-    }
-    updateState(stopFlag ? 'توقف' : 'اكتمل');
-    toast(results.length.toLocaleString() + ' رابط private');
-  } catch (e) {
-    toast(e.message);
-    updateState('خطأ');
-  } finally {
-    running = false;
-    $('start').disabled = false;
-    $('stop').disabled = true;
-    jobId = null;
-  }
-};
-
-$('stop').onclick = async () => {
-  stopFlag = true;
-  if (jobId) try { await fetch('/api/stop/' + jobId, { method: 'POST' }); } catch {}
-  $('stop').disabled = true;
-  updateState('يتوقف');
-  toast('إيقاف...');
-};
-
-$('saveUrls').onclick = () => download('private-urls.txt', results.map(x => x.url).join('\n'));
-$('saveUsed').onclick = () => download('used.txt', [...used].join('\n'));
-$('copyUrls').onclick = async () => {
-  try { await navigator.clipboard.writeText(results.map(x => x.url).join('\n')); toast('نسخ'); }
-  catch { toast('استعمل حفظ'); }
-};
-$('clear').onclick = () => {
-  if (running) return toast('أوقف أولاً');
-  results = []; fileDorks = null; render();
-  $('bar').style.width = '0%'; $('nReq').textContent = '0/0'; $('nBatch').textContent = '0';
-  $('fileInfo').textContent = ''; updateState('جاهز');
-};
+$('stop').onclick=async()=>{if(!jobId)return;await fetch('/api/stop/'+jobId,{method:'POST'});updateState('يتوقف');$('stop').disabled=true;toast('إيقاف...')};
+$('saveUrls').onclick=()=>download('urls-unique.txt',results.map(x=>x.url).join('\n'));
+$('saveAll').onclick=()=>download('urls-all.txt',results.map(x=>x.url).join('\n'));
+$('copyUrls').onclick=async()=>{try{await navigator.clipboard.writeText(results.map(x=>x.url).join('\n'));toast('نسخ')}catch{toast('استعمل حفظ')}};
+$('clear').onclick=()=>{if(running)return toast('أوقف أولاً');results=[];urlSet=new Set();render();$('bar').style.width='0%';$('nReq').textContent='0/0';$('nExp').textContent='0';updateState('جاهز')};
 render();
 </script>
 </body>

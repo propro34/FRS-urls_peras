@@ -9,15 +9,13 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// 5MB+ files support
 app.use(express.json({ limit: '6mb' }));
 
 app.get('/api/health', (_req, res) =>
-  res.json({ ok: true, app: 'FRS Dork URL Hunter DEEP PRIVATE', version: '2.1.0' })
+  res.json({ ok: true, app: 'FRS Dork URL Hunter SPEED', version: '3.0.0' })
 );
 app.get('/health', (_req, res) =>
-  res.json({ ok: true, app: 'FRS Dork URL Hunter DEEP PRIVATE', version: '2.1.0' })
+  res.json({ ok: true, app: 'FRS Dork URL Hunter SPEED', version: '3.0.0' })
 );
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -32,52 +30,6 @@ app.get('/', (_req, res) => {
 });
 
 const jobs = new Map();
-
-/* ── Famous / well-known domains to EXCLUDE (private mode) ── */
-const FAMOUS = new Set([
-  'google.com','google.co.uk','google.fr','google.de','google.es','google.it','google.ru',
-  'youtube.com','youtu.be','facebook.com','fb.com','instagram.com','twitter.com','x.com',
-  'linkedin.com','tiktok.com','reddit.com','pinterest.com','tumblr.com','snapchat.com',
-  'wikipedia.org','wikimedia.org','amazon.com','amazon.co.uk','amazon.de','amazon.fr',
-  'ebay.com','ebay.co.uk','alibaba.com','aliexpress.com','walmart.com','etsy.com',
-  'microsoft.com','office.com','live.com','outlook.com','msn.com','bing.com',
-  'apple.com','icloud.com','github.com','gitlab.com','bitbucket.org','stackoverflow.com',
-  'stackexchange.com','medium.com','quora.com','wordpress.com','blogspot.com','blogger.com',
-  'nytimes.com','cnn.com','bbc.com','bbc.co.uk','theguardian.com','forbes.com','reuters.com',
-  'yahoo.com','yahoo.co.jp','yandex.ru','baidu.com','duckduckgo.com',
-  'netflix.com','spotify.com','twitch.tv','discord.com','telegram.org','whatsapp.com',
-  'paypal.com','stripe.com','shopify.com','wix.com','squarespace.com','godaddy.com',
-  'cloudflare.com','aws.amazon.com','azure.com','digitalocean.com','heroku.com',
-  'adobe.com','dropbox.com','box.com','salesforce.com','zoom.us','slack.com',
-  'imdb.com','tripadvisor.com','booking.com','airbnb.com','uber.com',
-  'nih.gov','who.int','cdc.gov','edu','gov', // partial handled below
-  'mozilla.org','w3.org','apache.org','nginx.org','php.net','python.org','nodejs.org',
-  'oracle.com','ibm.com','intel.com','nvidia.com','samsung.com','huawei.com',
-  'vk.com','ok.ru','mail.ru','weibo.com','qq.com','taobao.com','jd.com'
-]);
-
-const FAMOUS_SUFFIXES = [
-  '.google.', '.facebook.', '.amazon.', '.microsoft.', '.apple.',
-  '.wikipedia.', '.youtube.', '.yahoo.', '.bing.', '.github.',
-  '.gov', '.edu', '.mil'
-];
-
-function isFamousDomain(hostname) {
-  if (!hostname) return true;
-  const h = hostname.toLowerCase().replace(/^www\./, '');
-  if (FAMOUS.has(h)) return true;
-  // check parent domains (e.g. maps.google.com)
-  const parts = h.split('.');
-  for (let i = 0; i < parts.length - 1; i++) {
-    const parent = parts.slice(i).join('.');
-    if (FAMOUS.has(parent)) return true;
-  }
-  for (const s of FAMOUS_SUFFIXES) {
-    if (h.includes(s) || h.endsWith(s.replace(/^\./, ''))) return true;
-  }
-  // very short brand-like 2-part popular TLDs already in set
-  return false;
-}
 
 function decodeHtml(s) {
   return String(s || '')
@@ -131,11 +83,13 @@ function extractLinks(html, engine) {
     try {
       const u = new URL(unwrapped);
       if (!['http:', 'https:'].includes(u.protocol)) continue;
-      if (/\.(?:jpg|jpeg|png|gif|webp|svg|ico|css|js|woff2?|ttf|pdf|zip|rar|exe|mp[34]|mkv|avi)(?:$|\?)/i.test(u.pathname)) continue;
+      if (/\.(?:jpg|jpeg|png|gif|webp|svg|ico|css|js|woff2?|ttf|zip|rar|exe|mp[34]|mkv|avi)(?:$|\?)/i.test(u.pathname)) continue;
       if (isEngineHost(u.hostname)) continue;
-      if (isFamousDomain(u.hostname)) continue; // PRIVATE: skip famous
       u.hash = '';
-      out.add(u.href);
+      // normalize: strip trailing slash noise for dedup friendliness
+      let href = u.href;
+      if (href.endsWith('/') && u.pathname !== '/') href = href.slice(0, -1);
+      out.add(href);
     } catch {}
   }
   if (engine === 'bing') {
@@ -146,9 +100,11 @@ function extractLinks(html, engine) {
       if (!/^https?:\/\//i.test(cite)) cite = 'https://' + cite.replace(/^\/+/, '');
       try {
         const u = new URL(cite);
-        if (['http:', 'https:'].includes(u.protocol) && !isEngineHost(u.hostname) && !isFamousDomain(u.hostname)) {
+        if (['http:', 'https:'].includes(u.protocol) && !isEngineHost(u.hostname)) {
           u.hash = '';
-          out.add(u.href);
+          let href = u.href;
+          if (href.endsWith('/') && u.pathname !== '/') href = href.slice(0, -1);
+          out.add(href);
         }
       } catch {}
     }
@@ -184,39 +140,7 @@ function expandDork(seed) {
     variants.add(`inurl:${inurlVal}`);
     if (siteVal) variants.add(`site:${siteVal} inurl:${inurlVal}`);
   }
-  return [...variants].slice(0, 6);
-}
-
-/** Higher = more private / interesting unknown target */
-function privateScore(url) {
-  let score = 0;
-  const u = url.toLowerCase();
-  let host = '';
-  try { host = new URL(url).hostname.toLowerCase().replace(/^www\./, ''); } catch { return -100; }
-
-  if (isFamousDomain(host)) return -100;
-
-  // obscure TLD / long host slightly preferred
-  if (/\.(tk|ml|ga|cf|gq|xyz|top|club|online|site|website|info|biz|cc|ws)$/i.test(host)) score += 4;
-  if (host.split('.').length >= 3) score += 2; // subdomain
-
-  if (/\/(admin|login|dashboard|panel|cp|manage|backend|console|wp-admin|phpmyadmin|cpanel)/i.test(u)) score += 14;
-  if (/\.php(\?|$)/i.test(u)) score += 9;
-  if (/\.(asp|aspx|jsp|cgi)(\?|$)/i.test(u)) score += 7;
-  if (/\?(id|file|page|dir|path|doc|cat|user|uid|pid|item)=/i.test(u)) score += 11;
-  if (/(\?|&)(redirect|url|next|return|continue|dest)=/i.test(u)) score += 8;
-  if (/config|setup|install|backup|dump|sql|database|\.env|secret|token|api[_-]?key/i.test(u)) score += 10;
-  if (/error|exception|warning|stack|trace|debug|pdoexception/i.test(u)) score += 9;
-  if (/index\s+of|parent\s+directory/i.test(u)) score += 12;
-
-  try {
-    const { pathname, search } = new URL(url);
-    const depth = pathname.split('/').filter(Boolean).length;
-    score += Math.min(depth, 6);
-    if ((pathname === '/' || pathname === '') && !search) score -= 8;
-  } catch {}
-
-  return score;
+  return [...variants].slice(0, 8);
 }
 
 function searchUrl(engine, query, page = 0) {
@@ -263,7 +187,7 @@ function fetchSearch(engine, query, proxyInfo, page = 0) {
       let parsed;
       try { parsed = new URL(currentUrl); } catch { return reject(new Error(`${engine}: bad url`)); }
       const lib = parsed.protocol === 'http:' ? http : https;
-      const req = lib.get(currentUrl, { headers, agent, timeout: 18000 }, response => {
+      const req = lib.get(currentUrl, { headers, agent, timeout: 16000 }, response => {
         if ([301, 302, 303, 307, 308].includes(response.statusCode) && response.headers.location && redirects < 5) {
           redirects++;
           let next = response.headers.location;
@@ -277,7 +201,7 @@ function fetchSearch(engine, query, proxyInfo, page = 0) {
         response.on('end', () => {
           if (response.statusCode < 200 || response.statusCode >= 300)
             return reject(new Error(`${engine}: HTTP ${response.statusCode}`));
-          if (body.length < 600 && /captcha|unusual traffic|robot|blocked/i.test(body))
+          if (body.length < 500 && /captcha|unusual traffic|robot|blocked/i.test(body))
             return reject(new Error(`${engine}: blocked`));
           resolve(body);
         });
@@ -305,15 +229,11 @@ async function runPool(tasks, concurrency, onTask, shouldContinue) {
 }
 
 app.post('/api/start', (req, res) => {
-  // Accept large batches (client splits 1M into chunks)
   const seedDorks = [
     ...new Set(String(req.body.dorks || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean))
   ];
-  // Soft per-request cap to protect RAM (client batches the rest)
-  if (seedDorks.length > 25000) {
-    return res.status(400).json({
-      error: 'هذا الطلب فيه أكثر من 25000 دورك. التطبيق يقرأ الملف على دفعات تلقائياً — قلّل حجم الدفعة أو استعمل الاستيراد.'
-    });
+  if (seedDorks.length > 30000) {
+    return res.status(400).json({ error: 'حد الطلب الواحد 30000 دورك. قسّم على دفعات إن لزم.' });
   }
 
   const engines = [
@@ -326,9 +246,8 @@ app.post('/api/start', (req, res) => {
   if (!Number.isFinite(threads) || threads < 50) threads = 50;
   if (threads > 200) threads = 200;
 
-  const deep = !!req.body.deep;
-  const deepPages = deep ? Math.min(Math.max(parseInt(req.body.deepPages, 10) || 2, 1), 4) : 1;
-  const privateOnly = req.body.privateOnly !== false; // default ON
+  const deep = req.body.deep !== false;
+  const deepPages = Math.min(Math.max(parseInt(req.body.deepPages, 10) || 3, 1), 5);
 
   const proxies = [];
   for (const line of String(req.body.proxyList || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean)) {
@@ -357,7 +276,7 @@ app.post('/api/start', (req, res) => {
 
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const job = {
-    id, threads, deep, deepPages, privateOnly, proxies,
+    id, threads, deep, deepPages, proxies,
     running: true, done: false,
     totalTasks: tasks.length,
     completed: 0,
@@ -368,10 +287,9 @@ app.post('/api/start', (req, res) => {
   };
   jobs.set(id, job);
 
-  // Cleanup old jobs (keep last 20)
-  if (jobs.size > 25) {
+  if (jobs.size > 20) {
     const keys = [...jobs.keys()];
-    for (let i = 0; i < keys.length - 20; i++) jobs.delete(keys[i]);
+    for (let i = 0; i < keys.length - 15; i++) jobs.delete(keys[i]);
   }
 
   res.json({
@@ -380,12 +298,11 @@ app.post('/api/start', (req, res) => {
     threads,
     deep,
     expandedDorks: allDorks.length,
-    privateOnly,
     proxyName: proxies.length ? `Rotating ${proxies.length}` : 'Direct'
   });
 
   (async () => {
-    const seen = new Set();
+    const seen = new Set(); // global URL dedup
     let proxyCounter = 0;
 
     await runPool(
@@ -399,16 +316,18 @@ app.post('/api/start', (req, res) => {
           const html = await fetchSearch(task.engine, task.dork, proxyInfo, task.page);
           const links = extractLinks(html, task.engine);
           for (const url of links) {
-            if (seen.has(url)) continue;
-            seen.add(url);
+            // normalize for dedup
+            const key = url.toLowerCase().replace(/\/$/, '');
+            if (seen.has(key)) continue;
+            seen.add(key);
             let domain = '';
             try { domain = new URL(url).hostname; } catch {}
-            if (privateOnly && isFamousDomain(domain)) continue;
-            const score = privateScore(url);
-            if (privateOnly && score < 0) continue;
             job.urls.push({
-              url, domain, dork: task.dork, engine: task.engine,
-              page: task.page + 1, score,
+              url,
+              domain,
+              dork: task.dork,
+              engine: task.engine,
+              page: task.page + 1,
               time: new Date().toISOString()
             });
           }
@@ -426,9 +345,8 @@ app.post('/api/start', (req, res) => {
       () => job.running
     );
 
-    job.urls.sort((a, b) => (b.score || 0) - (a.score || 0));
-    // Cap stored results per job to protect memory (client can download)
-    if (job.urls.length > 15000) job.urls = job.urls.slice(0, 15000);
+    // hard cap memory on stored list (client can download progressively)
+    if (job.urls.length > 50000) job.urls = job.urls.slice(0, 50000);
     job.running = false;
     job.done = true;
     job.finishedAt = Date.now();
@@ -438,8 +356,7 @@ app.post('/api/start', (req, res) => {
 app.get('/api/status/:id', (req, res) => {
   const j = jobs.get(req.params.id);
   if (!j) return res.status(404).json({ error: 'Job not found' });
-  // Light payload: only send urls if not huge, or top scored
-  const urls = j.urls.length > 3000 ? j.urls.slice(0, 3000) : j.urls;
+  const urls = j.urls.length > 5000 ? j.urls.slice(-5000) : j.urls;
   res.json({
     id: j.id,
     running: j.running,
@@ -467,4 +384,4 @@ app.use('/api', (req, res) =>
   res.status(404).json({ error: `API route not found: ${req.method} ${req.path}` })
 );
 
-app.listen(PORT, () => console.log(`FRS Dork Hunter DEEP PRIVATE v2.1.0 on ${PORT}`));
+app.listen(PORT, () => console.log(`FRS Dork URL Hunter SPEED v3.0.0 on ${PORT}`));
